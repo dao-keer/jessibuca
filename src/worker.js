@@ -2,35 +2,6 @@ import 'regenerator-runtime/runtime'
 import Module from '../demo/public/ff'
 import createWebGL from './utils/webgl';
 
-var supportedWasm = (() => {
-    try {
-        if (typeof WebAssembly === "object"
-            && typeof WebAssembly.instantiate === "function") {
-            const module = new WebAssembly.Module(Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00));
-            if (module instanceof WebAssembly.Module)
-                return new WebAssembly.Instance(module) instanceof WebAssembly.Instance;
-        }
-    } catch (e) {
-    }
-    return false;
-})();
-// const wasm = 'ff_wasm.js'
-// importScripts(wasm);
-
-// function arrayBufferCopy(src, dst, dstByteOffset, numBytes) {
-//     var i;
-//     var dst32Offset = dstByteOffset / 4;
-//     var tail = (numBytes % 4);
-//     var src32 = new Uint32Array(src.buffer, 0, (numBytes - tail) / 4);
-//     var dst32 = new Uint32Array(dst.buffer);
-//     for (i = 0; i < src32.length; i++) {
-//         dst32[dst32Offset + i] = src32[i];
-//     }
-//     for (i = numBytes - tail; i < numBytes; i++) {
-//         dst[dstByteOffset + i] = src[i];
-//     }
-// }
-
 function dispatchData(input) {
     let need = input.next()
     let buffer = null
@@ -231,7 +202,7 @@ Module.postRun = function () {
             this.speedSamplerId = setInterval(() => {
                 postMessage({cmd: "kBps", kBps: speedSampler.getLastSecondKBps()})
             }, 1000);
-            if (url.indexOf("http") == 0) {
+            if (url.indexOf("http") == 0 && url.indexOf(".flv") != -1) {
                 this.flvMode = true
                 var _this = this;
                 var controller = new AbortController();
@@ -264,51 +235,9 @@ Module.postRun = function () {
                     controller.abort()
                 }
             } else {
-                this.flvMode = url.indexOf(".flv") != -1
-                this.ws = new WebSocket(url)
-                this.ws.binaryType = "arraybuffer"
-                if (this.flvMode) {
-                    let input = this.inputFlv();
-                    var dispatch = dispatchData(input);
-                    this.ws.onmessage = evt => {
-                        speedSampler.addBytes(evt.data.byteLength);
-                        dispatch(evt.data)
-                    }
-                    this.ws.onerror = (e) => {
-                        input.return(null);
-                        postMessage({cmd: "printErr", text: e.toString()});
-                    }
-                } else {
-                    this.ws.onmessage = evt => {
-                        speedSampler.addBytes(evt.data.byteLength);
-                        var dv = new DataView(evt.data)
-                        switch (dv.getUint8(0)) {
-                            case 1:
-                                this.opt.hasAudio && buffer.push({
-                                    ts: dv.getUint32(1, false),
-                                    payload: new Uint8Array(evt.data, 5),
-                                    decoder: audioDecoder,
-                                    type: 0
-                                })
-                                break
-                            case 2:
-                                buffer.push({
-                                    ts: dv.getUint32(1, false),
-                                    payload: new Uint8Array(evt.data, 5),
-                                    decoder: videoDecoder,
-                                    type: dv.getUint8(5) >> 4
-                                })
-                                break
-                        }
-                    }
-                    this.ws.onerror = evt => {
-                        postMessage({cmd: "printErr", text: evt.toString()});
-                    }
-                }
-                this._close = function () {
-                    this.ws.close()
-                    this.ws = null;
-                }
+                this.opt.debug && console.log('目前只支持flv')
+                clearInterval(this.stopId)
+                clearInterval(this.speedSamplerId)
             }
             this.setVideoSize = function (w, h) {
                 postMessage({cmd: "initSize", w: w, h: h})
