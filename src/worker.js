@@ -235,7 +235,7 @@ Module.postRun = function () {
                     controller.abort()
                 }
             } else {
-                this.opt.debug && console.log('目前只支持flv')
+                this.opt.debug && postMessage({cmd: "printErr", text: "目前只支持flv"})
                 clearInterval(this.stopId)
                 clearInterval(this.speedSamplerId)
             }
