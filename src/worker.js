@@ -1,7 +1,7 @@
 import "regenerator-runtime/runtime";
 import Module from "../demo/public/ff";
 import createWebGL from "./utils/webgl";
-import getDecArr from "./utils/tools";
+import decode from "./utils/tools";
 
 function dispatchData(input) {
   let need = input.next();
@@ -168,39 +168,22 @@ Module.postRun = function () {
               buffer.push({ ts, payload, decoder: audioDecoder, type: 0 });
             break;
           case 9:
-            const defaultStr = "0,15,14,13,15,15,13,14";
-            const header = payload.slice(0, 9);
-            const encoderStr = payload.slice(9, 17);
-            const str = new Uint8Array(encoderStr).toString();
-            if (str === defaultStr) {
-              const dcArrayBuffer = getDecArr(payload.slice(17));
-              var newArrayBuffer = new Uint8Array(
-                header.byteLength + dcArrayBuffer.byteLength
-              );
-              newArrayBuffer.set(new Uint8Array(header), 0);
-              newArrayBuffer.set(
-                new Uint8Array(dcArrayBuffer),
-                header.byteLength
-              );
-              console.log({
-                ts,
-                payload: newArrayBuffer,
-                decoder: videoDecoder,
-                type: payload[0] >> 4,
-              });
-              buffer.push({
-                ts,
-                payload: newArrayBuffer,
-                decoder: videoDecoder,
-                type: payload[0] >> 4,
-              });
-            } else {
-              buffer.push({
-                ts,
-                payload,
-                decoder: videoDecoder,
-                type: payload[0] >> 4,
-              });
+            if (this.opt.hasVideo) {
+              if (this.opt.encodeType) {
+                buffer.push({
+                  ts,
+                  payload: decode(payload, this.opt.encodeType),
+                  decoder: videoDecoder,
+                  type: payload[0] >> 4,
+                });
+              } else {
+                buffer.push({
+                  ts,
+                  payload,
+                  decoder: videoDecoder,
+                  type: payload[0] >> 4,
+                });
+              }
             }
             break;
         }

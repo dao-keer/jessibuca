@@ -1,16 +1,17 @@
 <template>
   <div class="root">
     <div class="container-shell">
-      <div class="container-shell-title">jessibuca demo player <span class="tag-version" v-if="version">({{
-          version
-        }})</span></div>
+      <div class="container-shell-title">
+        jessibuca demo player
+        <span class="tag-version" v-if="version">({{ version }})</span>
+      </div>
       <div id="container" ref="container"></div>
       <div class="input">
         <div>输入URL：</div>
         <input
-            autocomplete="on"
-            ref="playUrl"
-            value="ws://localhost:8080/jessica/live/rtc"
+          autocomplete="on"
+          ref="playUrl"
+          value="http://192.168.88.149:80/live/stream_55.flv"
         />
         <button v-if="!playing" @click="play">播放</button>
         <button v-else @click="pause">停止</button>
@@ -39,16 +40,16 @@
         <button @click="screenShot">截图</button>
         <div style="line-height: 30px">
           <input
-              type="checkbox"
-              ref="operateBtns"
-              v-model="showOperateBtns"
-              @change="restartPlay"
+            type="checkbox"
+            ref="operateBtns"
+            v-model="showOperateBtns"
+            @change="restartPlay"
           /><span>操作按钮</span>
           <input
-              type="checkbox"
-              ref="operateBtns"
-              v-model="showBandwidth"
-              @change="restartPlay"
+            type="checkbox"
+            ref="operateBtns"
+            v-model="showBandwidth"
+            @change="restartPlay"
           /><span>网速</span>
           <span v-if="performance">性能：{{ performance }}</span>
         </div>
@@ -56,11 +57,11 @@
       <div class="option">
         <span>缓冲(秒):</span>
         <input
-            style="width: 50px"
-            type="number"
-            ref="buffer"
-            value="0.2"
-            @change="changeBuffer"
+          style="width: 50px"
+          type="number"
+          ref="buffer"
+          value="0.2"
+          @change="changeBuffer"
         />
         <!-- <input
           type="checkbox"
@@ -69,20 +70,20 @@
           @change="restartPlay"
         /><span>点播模式</span> -->
         <input
-            type="checkbox"
-            ref="offscreen"
-            v-model="forceNoOffscreen"
-            @change="restartPlay"
+          type="checkbox"
+          ref="offscreen"
+          v-model="forceNoOffscreen"
+          @change="restartPlay"
         /><span>禁用离屏渲染</span>
-        <input type="checkbox" ref="resize" @change="changeResize"/><span
-      >禁止画面拉伸</span
-      >
+        <input type="checkbox" ref="resize" @change="changeResize" /><span
+          >禁止画面拉伸</span
+        >
       </div>
     </div>
   </div>
 </template>
 <script>
-import {VERSION} from "./version";
+import { VERSION } from "./version";
 
 export default {
   name: "DemoPlayer",
@@ -90,7 +91,7 @@ export default {
   data() {
     return {
       jessibuca: null,
-      version: '',
+      version: "",
       wasm: false,
       vc: "ff",
       playing: false,
@@ -108,7 +109,7 @@ export default {
     };
   },
   mounted() {
-    this.version = VERSION === '#VERSION#' ? '' : VERSION;
+    this.version = VERSION === "#VERSION#" ? "" : VERSION;
     this.create();
     window.onerror = (msg) => (this.err = msg);
   },
@@ -119,29 +120,31 @@ export default {
     create(options) {
       options = options || {};
       this.jessibuca = new window.Jessibuca(
-          Object.assign(
-              {
-                container: this.$refs.container,
-                videoBuffer: Number(this.$refs.buffer.value), // 缓存时长
-                isResize: false,
-                text: "",
-                // background: "bg.jpg",
-                loadingText: "加载中",
-                // hasAudio:false,
-                debug: true,
-                showBandwidth: this.showBandwidth, // 显示网速
-                operateBtns: {
-                  fullscreen: this.showOperateBtns,
-                  screenshot: this.showOperateBtns,
-                  play: this.showOperateBtns,
-                  audio: this.showOperateBtns,
-                },
-                vod: this.vod,
-                forceNoOffscreen: this.forceNoOffscreen,
-                isNotMute: false,
-              },
-              options
-          )
+        Object.assign(
+          {
+            container: this.$refs.container,
+            videoBuffer: Number(this.$refs.buffer.value), // 缓存时长
+            isResize: false,
+            text: "",
+            // background: "bg.jpg",
+            loadingText: "加载中",
+            // hasAudio:false,
+            debug: true,
+            showBandwidth: this.showBandwidth, // 显示网速
+            operateBtns: {
+              fullscreen: this.showOperateBtns,
+              screenshot: this.showOperateBtns,
+              play: this.showOperateBtns,
+              audio: this.showOperateBtns,
+            },
+            vod: this.vod,
+            forceNoOffscreen: this.forceNoOffscreen,
+            isNotMute: false,
+            hasVideo: true,
+            encodeType: "",
+          },
+          options
+        )
       );
       // this.jessibuca.onLog = (msg) => console.log("onLog", msg);
       // this.jessibuca.onLoad = (msg) => console.log("onLoad");
@@ -208,9 +211,9 @@ export default {
         console.log("timeout");
       });
 
-      this.jessibuca.on('start', function () {
-        console.log('start');
-      })
+      this.jessibuca.on("start", function () {
+        console.log("start");
+      });
 
       // this.jessibuca.on("stats", function (stats) {
       //   console.log('stats', JSON.stringify(stats));
@@ -225,28 +228,23 @@ export default {
         }
         _this.performance = show;
       });
-      this.jessibuca.on('buffer', function (buffer) {
-        console.log('buffer', buffer);
-      })
+      this.jessibuca.on("buffer", function (buffer) {
+        console.log("buffer", buffer);
+      });
 
-      this.jessibuca.on('stats', function (stats) {
-        console.log('stats', stats);
-      })
+      this.jessibuca.on("stats", function (stats) {
+        console.log("stats", stats);
+      });
 
-      this.jessibuca.on('kBps', function (kBps) {
-        console.log('kBps', kBps);
+      this.jessibuca.on("kBps", function (kBps) {
+        console.log("kBps", kBps);
       });
 
       // 显示时间戳 PTS
-      this.jessibuca.on('videoFrame', function () {
-
-      })
+      this.jessibuca.on("videoFrame", function () {});
 
       //
-      this.jessibuca.on('metadata', function () {
-
-      });
-
+      this.jessibuca.on("metadata", function () {});
 
       // console.log(this.jessibuca);
     },
