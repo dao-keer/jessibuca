@@ -11,7 +11,7 @@
         <input
           autocomplete="on"
           ref="playUrl"
-          value="http://192.168.88.149:80/live/stream_55.flv"
+          value=""
         />
         <button v-if="!playing" @click="play">播放</button>
         <button v-else @click="pause">停止</button>
@@ -75,9 +75,12 @@
           v-model="forceNoOffscreen"
           @change="restartPlay"
         /><span>禁用离屏渲染</span>
-        <input type="checkbox" ref="resize" @change="changeResize" /><span
-          >禁止画面拉伸</span
-        >
+        <input
+          type="checkbox"
+          ref="resize"
+          @change="changeResize"
+          checked
+        /><span>禁止画面拉伸</span>
       </div>
     </div>
   </div>
@@ -112,6 +115,7 @@ export default {
     this.version = VERSION === "#VERSION#" ? "" : VERSION;
     this.create();
     window.onerror = (msg) => (this.err = msg);
+    this.jessibuca.setScaleMode(1);
   },
   unmounted() {
     this.jessibuca.destroy();
@@ -141,7 +145,7 @@ export default {
             forceNoOffscreen: this.forceNoOffscreen,
             isNotMute: false,
             hasVideo: true,
-            encodeType: "",
+            encodeType: "h264",
           },
           options
         )
@@ -257,11 +261,22 @@ export default {
       });
 
       if (this.$refs.playUrl.value) {
+        let url = this.$refs.playUrl.value
+        const headerIndex = url.indexOf('://');
+        const ulrR = url.slice(headerIndex + 3);
+        const domainIndex = ulrR.indexOf('/');
+        const urlValue = ulrR.slice(0, domainIndex)
+        if(url.indexOf("?") !== -1){
+          url = window.location.origin + url.slice(headerIndex + 3 + domainIndex) + "&domain=" + urlValue
+        }else{
+          url = window.location.origin + url.slice(headerIndex + 3 + domainIndex) + "?domain=" + urlValue
+        }
+        console.log(url)
         if (this.jessibuca.hasLoaded()) {
-          this.jessibuca.play(this.$refs.playUrl.value);
+          this.jessibuca.play(url);
         } else {
           this.jessibuca.on("load", () => {
-            this.jessibuca.play(this.$refs.playUrl.value);
+            this.jessibuca.play(url);
           });
         }
       }
